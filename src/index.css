@@ -1,0 +1,166 @@
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Paleta OPA5 ── */
+    --navy:        #0f2b5b;   /* azul institucional escuro */
+    --navy-light:  #1a3d7a;
+    --blue:        #1e56b0;   /* azul principal */
+    --blue-light:  #2d6ed6;
+    --teal:        #0e7a6e;   /* verde-teal confiança */
+    --teal-light:  #14a394;
+    --sage:        #e8f4f2;   /* verde muito claro (fundo suave) */
+    --slate:       #f0f4fa;   /* cinza-azulado claro */
+    --ink:         #1a2233;   /* texto principal */
+    --muted:       #5a6a85;   /* texto secundário */
+    --border:      #d0daea;
+    --white:       #ffffff;
+    --success:     #0e7a6e;
+    --warning:     #d97706;
+    --danger:      #c0392b;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    background: var(--slate);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: 'DM Serif Display', serif;
+    line-height: 1.2;
+  }
+}
+
+@layer components {
+  /* ── Botões ── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg
+           font-medium text-sm transition-all duration-200 cursor-pointer
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-primary {
+    @apply btn text-white;
+    background: var(--blue);
+  }
+  .btn-primary:hover:not(:disabled) { background: var(--blue-light); }
+
+  .btn-teal {
+    @apply btn text-white;
+    background: var(--teal);
+  }
+  .btn-teal:hover:not(:disabled) { background: var(--teal-light); }
+
+  .btn-outline {
+    @apply btn border bg-white;
+    color: var(--blue);
+    border-color: var(--blue);
+  }
+  .btn-outline:hover:not(:disabled) {
+    background: var(--blue);
+    color: white;
+  }
+
+  .btn-ghost {
+    @apply btn bg-transparent;
+    color: var(--muted);
+  }
+  .btn-ghost:hover:not(:disabled) { background: var(--slate); color: var(--ink); }
+
+  .btn-danger {
+    @apply btn text-white;
+    background: var(--danger);
+  }
+
+  /* ── Inputs ── */
+  .input {
+    @apply w-full px-3.5 py-2.5 rounded-lg text-sm border outline-none
+           transition-all duration-150;
+    border-color: var(--border);
+    background: white;
+    color: var(--ink);
+  }
+  .input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(30, 86, 176, 0.12);
+  }
+  .input::placeholder { color: var(--muted); opacity: 0.7; }
+
+  .textarea {
+    @apply input resize-none;
+    min-height: 100px;
+  }
+
+  .select {
+    @apply input appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235a6a85' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+
+  .label {
+    @apply block text-xs font-semibold mb-1.5 tracking-wide uppercase;
+    color: var(--muted);
+  }
+
+  /* ── Card ── */
+  .card {
+    @apply bg-white rounded-xl border shadow-sm;
+    border-color: var(--border);
+  }
+
+  /* ── Badge ── */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+  .badge-blue  { background: #dbeafe; color: #1e40af; }
+  .badge-teal  { background: #d1fae5; color: #065f46; }
+  .badge-amber { background: #fef3c7; color: #92400e; }
+  .badge-red   { background: #fee2e2; color: #991b1b; }
+}
+
+@layer utilities {
+  .font-display { font-family: 'DM Serif Display', serif; }
+  .text-navy    { color: var(--navy); }
+  .text-blue    { color: var(--blue); }
+  .text-teal    { color: var(--teal); }
+  .text-muted   { color: var(--muted); }
+  .bg-navy      { background: var(--navy); }
+  .bg-blue      { background: var(--blue); }
+  .bg-teal      { background: var(--teal); }
+  .bg-sage      { background: var(--sage); }
+  .bg-slate-opa { background: var(--slate); }
+  .border-opa   { border-color: var(--border); }
+
+  /* scrollbar sutil */
+  .scrollbar-thin::-webkit-scrollbar { width: 5px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+  /* animações */
+  .fade-in {
+    animation: fadeIn 0.35s ease both;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-in {
+    animation: slideIn 0.3s ease both;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+}
