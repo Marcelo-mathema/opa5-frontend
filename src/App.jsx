@@ -10,6 +10,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import PlanoForm from './pages/PlanoForm'
 import Admin from './pages/Admin'
+import Configuracoes from './pages/Configuracoes'
 
 import Precos from './pages/Precos'
 import PagamentoSucesso from './pages/PagamentoSucesso'
@@ -67,7 +68,8 @@ export default function App() {
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
         <Route path="/precos" element={<Precos />} />
         <Route path="/pagamento/sucesso" element={<PrivateRoute><PagamentoSucesso /></PrivateRoute>} />
-      </Routes>
+         <Route path="/configuracoes" element={<PrivateRoute><Configuracoes /></PrivateRoute>} />
+         </Routes>
     </BrowserRouter>
   )
 }
