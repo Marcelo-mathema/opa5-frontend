@@ -399,7 +399,7 @@ export default function Admin() {
                     <div className="w-14 h-14 rounded-xl border flex items-center justify-center flex-shrink-0 overflow-hidden bg-gray-50"
                       style={{ borderColor: 'var(--border)' }}>
                       {s.logo_path ? (
-                        <img src={`http://localhost:8000/uploads/${s.logo_path}`}
+                         <img src={s.logo_path?.startsWith('http') ? s.logo_path : `${import.meta.env.VITE_API_URL}/uploads/${s.logo_path}`}
                           alt={s.nome} className="w-full h-full object-contain p-1" />
                       ) : (
                         <Building2 size={22} style={{ color: 'var(--border)' }} />
