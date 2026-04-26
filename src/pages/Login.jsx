@@ -53,7 +53,6 @@ export default function Login() {
             src="/logo_opa_login.png"
             alt="OPA — Otimização do Plano de Aula"
             className="h-24 object-contain"
-            style={{ filter: 'brightness(0) invert(1)' }}
           />
         </div>
 
@@ -94,6 +93,9 @@ export default function Login() {
             />
           </div>
 
+          <p className="font-semibold text-sm mb-1" style={{ color: 'var(--blue)' }}>
+            OPA — Otimização do Plano de Aula
+          </p>
           <h2 className="font-display text-3xl mb-1" style={{ color: 'var(--navy)' }}>
             Entrar na plataforma
           </h2>
