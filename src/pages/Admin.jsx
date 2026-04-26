@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import {
   Users, Building2, Edit3, Trash2, Upload,
   Plus, X, Check, Loader2, ArrowLeft,
-  Eye, EyeOff, RefreshCw, Link as LinkIcon
+  Eye, EyeOff, RefreshCw, Link as LinkIcon,
+  Pencil
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '../services/api'
@@ -69,7 +70,6 @@ function EditUserModal({ user, schools, onClose, onSave }) {
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
         </div>
         <div className="px-6 py-5 flex flex-col gap-4">
-          {/* Nome completo */}
           <div>
             <label className="label">Nome completo</label>
             <input className="input" placeholder="Nome com acentos e espaços"
@@ -108,7 +108,6 @@ function EditUserModal({ user, schools, onClose, onSave }) {
             </select>
           </div>
 
-          {/* Escola — vinculada pelo admin */}
           <div>
             <label className="label flex items-center gap-1">
               <LinkIcon size={11} /> Escola vinculada
@@ -209,6 +208,92 @@ function NewSchoolModal({ onClose, onSave }) {
   )
 }
 
+function EditSchoolModal({ school, onClose, onSave }) {
+  const [nome, setNome] = useState(school.nome)
+  const [loading, setLoading] = useState(false)
+
+  const save = async () => {
+    if (!nome.trim()) return toast.error('Informe o nome da escola.')
+    setLoading(true)
+    try {
+      const fd = new FormData()
+      fd.append('nome', nome.trim())
+      await api.put(`/api/admin/schools/${school.id}`, fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      toast.success('Escola atualizada!')
+      onSave(); onClose()
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Erro ao atualizar escola.')
+    } finally { setLoading(false) }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm fade-in">
+        <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: 'var(--border)' }}>
+          <h3 className="font-display text-lg" style={{ color: 'var(--navy)' }}>Editar Escola</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X size={18} /></button>
+        </div>
+        <div className="px-6 py-5">
+          <label className="label">Nome da escola</label>
+          <input className="input" value={nome} onChange={e => setNome(e.target.value)} />
+        </div>
+        <div className="flex justify-end gap-2 px-6 pb-5">
+          <button onClick={onClose} className="btn-ghost">Cancelar</button>
+          <button onClick={save} disabled={loading} className="btn-primary gap-2">
+            {loading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+            Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DeleteSchoolModal({ school, onClose, onConfirm }) {
+  const [loading, setLoading] = useState(false)
+
+  const confirm = async () => {
+    setLoading(true)
+    await onConfirm()
+    setLoading(false)
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
+      <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-sm fade-in">
+        <div className="px-6 py-5">
+          <h3 className="font-display text-lg mb-2" style={{ color: '#ef4444' }}>Deletar Escola</h3>
+          <p className="text-sm" style={{ color: 'var(--muted)' }}>
+            Tem certeza que deseja remover <strong style={{ color: 'var(--navy)' }}>{school.nome}</strong>?
+            Esta ação não pode ser desfeita.
+          </p>
+          {school.users_count > 0 && (
+            <p className="text-xs mt-3 p-3 bg-red-50 rounded-lg text-red-600">
+              ⚠ Esta escola possui {school.users_count} professor{school.users_count !== 1 ? 'es' : ''} vinculado{school.users_count !== 1 ? 's' : ''}.
+              Desvincule-os antes de deletar.
+            </p>
+          )}
+        </div>
+        <div className="flex justify-end gap-2 px-6 pb-5">
+          <button onClick={onClose} className="btn-ghost">Cancelar</button>
+          <button
+            onClick={confirm}
+            disabled={loading || school.users_count > 0}
+            className="px-4 py-2 rounded-lg text-white text-sm font-medium disabled:opacity-50"
+            style={{ background: '#ef4444' }}
+          >
+            {loading ? <Loader2 size={14} className="animate-spin" /> : 'Deletar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Admin() {
   const navigate = useNavigate()
   const user = useAuthStore(s => s.user)
@@ -217,8 +302,10 @@ export default function Admin() {
   const [schools, setSchools] = useState([])
   const [stats, setStats]     = useState(null)
   const [loading, setLoading] = useState(true)
-  const [editUser, setEditUser]   = useState(null)
-  const [newSchool, setNewSchool] = useState(false)
+  const [editUser, setEditUser]       = useState(null)
+  const [newSchool, setNewSchool]     = useState(false)
+  const [editSchool, setEditSchool]   = useState(null)
+  const [deleteSchool, setDeleteSchool] = useState(null)
   const [uploadingLogo, setUploadingLogo] = useState(null)
 
   useEffect(() => {
@@ -265,6 +352,17 @@ export default function Admin() {
       fetchAll()
     } catch { toast.error('Erro ao enviar logo.') }
     finally { setUploadingLogo(null) }
+  }
+
+  const handleDeleteSchool = async () => {
+    try {
+      await api.delete(`/api/admin/schools/${deleteSchool.id}`)
+      toast.success('Escola removida!')
+      setDeleteSchool(null)
+      fetchAll()
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Erro ao remover escola.')
+    }
   }
 
   return (
@@ -396,15 +494,19 @@ export default function Admin() {
                   </div>
                 ) : schools.map(s => (
                   <div key={s.id} className="flex items-center gap-4 px-5 py-4 hover:bg-gray-50">
+                    {/* Logo */}
                     <div className="w-14 h-14 rounded-xl border flex items-center justify-center flex-shrink-0 overflow-hidden bg-gray-50"
                       style={{ borderColor: 'var(--border)' }}>
                       {s.logo_path ? (
-                         <img src={s.logo_path?.startsWith('http') ? s.logo_path : `${import.meta.env.VITE_API_URL}/uploads/${s.logo_path}`}
+                        <img
+                          src={s.logo_path?.startsWith('http') ? s.logo_path : `${import.meta.env.VITE_API_URL}/uploads/${s.logo_path}`}
                           alt={s.nome} className="w-full h-full object-contain p-1" />
                       ) : (
                         <Building2 size={22} style={{ color: 'var(--border)' }} />
                       )}
                     </div>
+
+                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-sm" style={{ color: 'var(--navy)' }}>{s.nome}</p>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -418,14 +520,39 @@ export default function Admin() {
                         }
                       </div>
                     </div>
-                    <label className="btn-outline gap-2 text-xs cursor-pointer">
-                      {uploadingLogo === s.id
-                        ? <Loader2 size={13} className="animate-spin" />
-                        : <Upload size={13} />}
-                      {s.logo_path ? 'Trocar logo' : 'Enviar logo'}
-                      <input type="file" accept=".png,.jpg,.jpeg,.webp" className="hidden"
-                        onChange={e => handleUploadLogo(s.id, e.target.files[0])} />
-                    </label>
+
+                    {/* Ações */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {/* Upload logo */}
+                      <label className="btn-outline gap-2 text-xs cursor-pointer">
+                        {uploadingLogo === s.id
+                          ? <Loader2 size={13} className="animate-spin" />
+                          : <Upload size={13} />}
+                        {s.logo_path ? 'Trocar logo' : 'Enviar logo'}
+                        <input type="file" accept=".png,.jpg,.jpeg,.webp" className="hidden"
+                          onChange={e => handleUploadLogo(s.id, e.target.files[0])} />
+                      </label>
+
+                      {/* Editar */}
+                      <button
+                        onClick={() => setEditSchool(s)}
+                        className="p-2 rounded-lg hover:bg-blue-50 transition-colors"
+                        title="Editar escola"
+                        style={{ color: 'var(--blue)' }}
+                      >
+                        <Pencil size={15} />
+                      </button>
+
+                      {/* Deletar */}
+                      <button
+                        onClick={() => setDeleteSchool(s)}
+                        className="p-2 rounded-lg hover:bg-red-50 transition-colors"
+                        title="Deletar escola"
+                        style={{ color: '#ef4444' }}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -436,6 +563,8 @@ export default function Admin() {
 
       {editUser && <EditUserModal user={editUser} schools={schools} onClose={() => setEditUser(null)} onSave={fetchAll} />}
       {newSchool && <NewSchoolModal onClose={() => setNewSchool(false)} onSave={fetchAll} />}
+      {editSchool && <EditSchoolModal school={editSchool} onClose={() => setEditSchool(null)} onSave={fetchAll} />}
+      {deleteSchool && <DeleteSchoolModal school={deleteSchool} onClose={() => setDeleteSchool(null)} onConfirm={handleDeleteSchool} />}
     </Layout>
   )
 }

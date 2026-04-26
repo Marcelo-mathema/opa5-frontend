@@ -98,20 +98,20 @@ export default function Login() {
               <input
                 className={`input ${errors.username ? 'border-red-400' : ''}`}
                 placeholder="seu.usuario"
+                autoComplete="off"
                 {...register('username', { required: 'Informe o usuário' })}
-              />
+                            />
               {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
             </div>
 
             <div>
               <label className="label">Senha</label>
-              <div className="relative">
+             <div className="relative">
                 <input
                   className={`input pr-10 ${errors.password ? 'border-red-400' : ''}`}
                   type={showPw ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  {...register('password', { required: 'Informe a senha' })}
-                />
+                  autoComplete="new-password"
+                  {...register('password', { required: 'Informe a senha' })}                />
                 <button type="button" onClick={() => setShowPw(!showPw)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
