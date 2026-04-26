@@ -1,9 +1,9 @@
-// src/pages/Dashboard.jsx — corrigido: useNavigate no componente pai
+// src/pages/Dashboard.jsx
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Plus, FileText, Sparkles, Trash2, Edit3,
-  Download, BookOpen, Users, Clock, AlertCircle, Zap
+  Download, BookOpen, Users, Clock, AlertCircle, Zap, Gift
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { planosAPI, api } from '../services/api'
@@ -25,71 +25,89 @@ function StatCard({ icon: Icon, label, value, color }) {
   )
 }
 
-// ── Barra de uso do plano — sem useNavigate interno ───────────────────────────
 function PlanUsageBar({ usage, onUpgradeClick }) {
-  if (!usage || usage.plan_type !== 'free') return null
+  if (!usage) return null
 
+  // Admin — sem barra
+  if (usage.plan_type === 'admin') return null
+
+  // Trial ativo
+  if (usage.trial_ativo) {
+    const dias = usage.trial_dias_restantes
+    const urgente = dias <= 7
+    return (
+      <div className="card p-4 mb-6 fade-in"
+        style={{ borderColor: urgente ? '#f59e0b' : 'var(--teal)', background: urgente ? '#fffbeb' : '#f0fdf4' }}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Gift size={15} style={{ color: urgente ? '#d97706' : 'var(--teal)' }} />
+            <span className="text-sm font-semibold"
+              style={{ color: urgente ? '#92400e' : 'var(--teal)' }}>
+              🎁 Período de teste — {dias} dia{dias !== 1 ? 's' : ''} restante{dias !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <button onClick={onUpgradeClick}
+            className="text-xs font-semibold px-3 py-1 rounded-full transition-all"
+            style={{ background: urgente ? '#d97706' : 'var(--teal)', color: 'white' }}>
+            Assinar agora
+          </button>
+        </div>
+        {urgente && (
+          <p className="text-xs mt-2" style={{ color: '#92400e' }}>
+            Seu teste termina em breve. Assine para continuar criando planos ilimitados.
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  // Plano pago — sem barra
+  if (usage.plan_type !== 'free') return null
+
+  // Plano gratuito
   const { planos_este_mes, limite_mensal, percentual, atingiu_limite } = usage
-
   return (
-    <div
-      className="card p-4 mb-6 fade-in"
-      style={atingiu_limite
-        ? { borderColor: '#f59e0b', background: '#fffbeb' }
-        : {}
-      }
-    >
+    <div className="card p-4 mb-6 fade-in"
+      style={atingiu_limite ? { borderColor: '#f59e0b', background: '#fffbeb' } : {}}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           {atingiu_limite
             ? <AlertCircle size={15} style={{ color: '#d97706' }} />
-            : <Zap size={15} style={{ color: 'var(--teal)' }} />
-          }
+            : <Zap size={15} style={{ color: 'var(--teal)' }} />}
           <span className="text-sm font-semibold"
             style={{ color: atingiu_limite ? '#92400e' : 'var(--navy)' }}>
             {atingiu_limite ? 'Limite atingido!' : 'Plano Gratuito'}
           </span>
         </div>
-        <button
-          onClick={onUpgradeClick}
+        <button onClick={onUpgradeClick}
           className="text-xs font-semibold px-3 py-1 rounded-full transition-all"
           style={{ background: 'var(--blue)', color: 'white' }}>
           Fazer upgrade
         </button>
       </div>
-
       <div className="flex items-center gap-3">
-        <div className="flex-1 h-2 rounded-full overflow-hidden"
-          style={{ background: 'var(--border)' }}>
-          <div
-            className="h-full rounded-full transition-all duration-500"
-            style={{
-              width: `${percentual}%`,
-              background: atingiu_limite ? '#f59e0b' : 'var(--teal)',
-            }}
-          />
+        <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+          <div className="h-full rounded-full transition-all duration-500"
+            style={{ width: `${percentual}%`, background: atingiu_limite ? '#f59e0b' : 'var(--teal)' }} />
         </div>
         <span className="text-xs flex-shrink-0" style={{ color: 'var(--muted)' }}>
           {planos_este_mes}/{limite_mensal} este mês
         </span>
       </div>
-
       {atingiu_limite && (
         <p className="text-xs mt-2" style={{ color: '#92400e' }}>
-          Limite de {limite_mensal} planos/mês atingido.
-          Faça upgrade para criar planos ilimitados.
+          Limite de {limite_mensal} planos/mês atingido. Faça upgrade para criar planos ilimitados.
         </p>
       )}
     </div>
   )
 }
 
-// ── Dashboard principal ───────────────────────────────────────────────────────
 export default function Dashboard() {
   const [planos, setPlanos]   = useState([])
   const [loading, setLoading] = useState(true)
   const [usage, setUsage]     = useState(null)
-  const navigate  = useNavigate()      // ← useNavigate SOMENTE aqui
+  const navigate  = useNavigate()
   const user      = useAuthStore((s) => s.user)
   const nomeExibicao = user?.nome_completo || user?.username || ''
 
@@ -139,7 +157,7 @@ export default function Dashboard() {
     navigate('/plano/novo')
   }
 
-  const thisMonth    = planos.filter(p => {
+  const thisMonth     = planos.filter(p => {
     const d = new Date(p.created_at), now = new Date()
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   }).length
@@ -165,18 +183,15 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Barra de uso — navigate passado como prop */}
-        <PlanUsageBar
-          usage={usage}
-          onUpgradeClick={() => navigate('/precos')}
-        />
+        {/* Barra de uso / trial */}
+        <PlanUsageBar usage={usage} onUpgradeClick={() => navigate('/precos')} />
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={FileText} label="Total de planos"   value={planos.length}  color="var(--blue)"  />
-          <StatCard icon={Clock}    label="Este mês"          value={thisMonth}      color="var(--teal)"  />
-          <StatCard icon={Sparkles} label="Com IA"            value={withInclusion}  color="#7c3aed"      />
-          <StatCard icon={Users}    label="Com inclusão/AEE"  value={withInclusion}  color="var(--navy)"  />
+          <StatCard icon={FileText} label="Total de planos"  value={planos.length} color="var(--blue)"  />
+          <StatCard icon={Clock}    label="Este mês"         value={thisMonth}     color="var(--teal)"  />
+          <StatCard icon={Sparkles} label="Com IA"           value={withInclusion} color="#7c3aed"      />
+          <StatCard icon={Users}    label="Com inclusão/AEE" value={withInclusion} color="var(--navy)"  />
         </div>
 
         {/* Lista de planos */}
@@ -201,12 +216,8 @@ export default function Dashboard() {
                 style={{ background: 'var(--sage)' }}>
                 <BookOpen size={28} style={{ color: 'var(--teal)' }} />
               </div>
-              <p className="font-display text-xl" style={{ color: 'var(--navy)' }}>
-                Nenhum plano ainda
-              </p>
-              <p className="text-sm" style={{ color: 'var(--muted)' }}>
-                Crie seu primeiro plano de aula com IA
-              </p>
+              <p className="font-display text-xl" style={{ color: 'var(--navy)' }}>Nenhum plano ainda</p>
+              <p className="text-sm" style={{ color: 'var(--muted)' }}>Crie seu primeiro plano de aula com IA</p>
               <button onClick={handleNovoPlano} className="btn-primary mt-2">
                 <Plus size={16} /> Criar primeiro plano
               </button>
@@ -214,12 +225,9 @@ export default function Dashboard() {
           ) : (
             <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
               {planos.map((plano, i) => (
-                <div
-                  key={plano.id}
-                  onClick={() => navigate(`/plano/${plano.id}`)}
+                <div key={plano.id} onClick={() => navigate(`/plano/${plano.id}`)}
                   className="px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors group fade-in"
-                  style={{ animationDelay: `${i * 0.04}s` }}
-                >
+                  style={{ animationDelay: `${i * 0.04}s` }}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -227,8 +235,7 @@ export default function Dashboard() {
                         <FileText size={16} style={{ color: 'var(--blue)' }} />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate"
-                          style={{ color: 'var(--navy)' }}>
+                        <p className="font-semibold text-sm truncate" style={{ color: 'var(--navy)' }}>
                           {plano.tema || 'Sem tema'}
                         </p>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -236,9 +243,7 @@ export default function Dashboard() {
                             <span className="badge badge-blue text-xs">{plano.disciplina}</span>
                           )}
                           {plano.serie && (
-                            <span className="text-xs" style={{ color: 'var(--muted)' }}>
-                              {plano.serie}
-                            </span>
+                            <span className="text-xs" style={{ color: 'var(--muted)' }}>{plano.serie}</span>
                           )}
                           {plano.inclusion_data?.paee && (
                             <span className="badge badge-teal text-xs">Inclusão/AEE</span>
@@ -255,18 +260,15 @@ export default function Dashboard() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                      <button
-                        onClick={e => handleDownloadPDF(plano, e)}
+                      <button onClick={e => handleDownloadPDF(plano, e)}
                         className="btn-ghost p-2 rounded-lg" title="Baixar PDF">
                         <Download size={15} />
                       </button>
-                      <button
-                        onClick={e => { e.stopPropagation(); navigate(`/plano/${plano.id}`) }}
+                      <button onClick={e => { e.stopPropagation(); navigate(`/plano/${plano.id}`) }}
                         className="btn-ghost p-2 rounded-lg" title="Editar">
                         <Edit3 size={15} />
                       </button>
-                      <button
-                        onClick={e => handleDelete(plano.id, e)}
+                      <button onClick={e => handleDelete(plano.id, e)}
                         className="p-2 rounded-lg transition-colors hover:bg-red-50 hover:text-red-500"
                         style={{ color: 'var(--muted)' }} title="Excluir">
                         <Trash2 size={15} />
