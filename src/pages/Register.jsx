@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Eye, EyeOff, BookOpen, CheckCircle2 } from 'lucide-react'
+import { Eye, EyeOff, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '../services/api'
 
@@ -66,18 +66,25 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--navy)' }}>
-      {/* Painel esquerdo */}
+      {/* ═══════════════════════════════════════════
+          PAINEL ESQUERDO — visível apenas em desktop
+          ─ CORRIGIDO: usa a logo real igual ao Login
+      ════════════════════════════════════════════ */}
       <div className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 right-0 w-96 h-96 rounded-full border-2 border-white translate-x-1/2 -translate-y-1/2" />
           <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full border border-white -translate-x-1/2 translate-y-1/2" />
         </div>
-        <div className="relative flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--teal)' }}>
-            <BookOpen size={20} className="text-white" />
-          </div>
-          <span className="text-white text-xl font-display">OPA5</span>
+
+        {/* Logo — idêntica à do Login */}
+        <div className="relative">
+          <img
+            src="/logo.png"
+            alt="OPA — Otimização do Plano de Aula"
+            className="h-16 w-auto object-contain"
+          />
         </div>
+
         <div className="relative">
           <h1 className="text-white font-display text-5xl leading-tight mb-6">
             Comece grátis.<br />
@@ -104,17 +111,23 @@ export default function Register() {
             ))}
           </div>
         </div>
-        <p className="relative text-blue-300 text-xs">© {new Date().getFullYear()} OPA5 SaaS.</p>
+        <p className="relative text-blue-300 text-xs">© {new Date().getFullYear()} OPA – MPA Produtos. Todos os direitos reservados.</p>
       </div>
 
-      {/* Formulário */}
+      {/* ═══════════════════════════════════════════
+          PAINEL DIREITO — Formulário
+      ════════════════════════════════════════════ */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-white lg:rounded-l-3xl overflow-y-auto">
         <div className="w-full max-w-md fade-in py-4">
+
+          {/* Logo mobile — visível só em telas pequenas
+              CORRIGIDO: usa a logo real igual ao Login */}
           <div className="flex items-center gap-2 mb-6 lg:hidden">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--navy)' }}>
-              <BookOpen size={16} className="text-white" />
-            </div>
-            <span className="font-display text-lg" style={{ color: 'var(--navy)' }}>OPA5</span>
+            <img
+              src="/logo.png"
+              alt="OPA — Otimização do Plano de Aula"
+              className="h-8 w-auto object-contain"
+            />
           </div>
 
           {done ? (
