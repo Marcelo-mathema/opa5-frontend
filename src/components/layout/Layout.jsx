@@ -33,7 +33,7 @@ export default function Layout({ children }) {
             <div className="w-6 h-6 rounded flex items-center justify-center" style={{ background: 'var(--navy)' }}>
               <BookOpen size={12} className="text-white" />
             </div>
-            <span className="font-display text-base" style={{ color: 'var(--navy)' }}>OPA5</span>
+            <span className="font-display text-base" style={{ color: 'var(--navy)' }}>OPA</span>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto scrollbar-thin bg-slate-opa">
@@ -75,7 +75,7 @@ function Sidebar({ mobile, onClose }) {
           <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--teal)' }}>
             <BookOpen size={16} className="text-white" />
           </div>
-          <span className="font-display text-lg text-white tracking-wide">OPA5</span>
+          <span className="font-display text-lg text-white tracking-wide">OPA</span>
         </div>
         {mobile && (
           <button onClick={onClose} className="text-blue-300 hover:text-white">

@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Eye, EyeOff, BookOpen } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
@@ -46,12 +46,17 @@ export default function Login() {
           <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full border border-white -translate-x-1/2 translate-y-1/2" />
           <div className="absolute top-1/2 left-1/2 w-48 h-48 border border-white rounded-lg rotate-45 -translate-x-1/2 -translate-y-1/2" />
         </div>
-        <div className="relative flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'var(--teal)' }}>
-            <BookOpen size={20} className="text-white" />
-          </div>
-          <span className="text-white text-xl font-display tracking-wide">OPA5</span>
+
+        {/* Logo no painel esquerdo */}
+        <div className="relative">
+          <img
+            src="/logo_opa_login.png"
+            alt="OPA — Otimização do Plano de Aula"
+            className="h-24 object-contain"
+            style={{ filter: 'brightness(0) invert(1)' }}
+          />
         </div>
+
         <div className="relative">
           <h1 className="text-white font-display text-5xl leading-tight mb-6">
             Planos de aula<br />
@@ -70,19 +75,23 @@ export default function Login() {
             ))}
           </div>
         </div>
+
         <p className="relative text-blue-300 text-xs">
-          © {new Date().getFullYear()} OPA5 SaaS. Todos os direitos reservados.
+          © {new Date().getFullYear()} OPA SaaS. Todos os direitos reservados.
         </p>
       </div>
 
       {/* Formulário */}
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-white lg:rounded-l-3xl">
         <div className="w-full max-w-md fade-in">
-          <div className="flex items-center gap-2 mb-8 lg:hidden">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'var(--navy)' }}>
-              <BookOpen size={16} className="text-white" />
-            </div>
-            <span className="font-display text-lg" style={{ color: 'var(--navy)' }}>OPA5</span>
+
+          {/* Logo no mobile */}
+          <div className="flex justify-center mb-6 lg:hidden">
+            <img
+              src="/logo_opa_login.png"
+              alt="OPA — Otimização do Plano de Aula"
+              className="h-16 object-contain"
+            />
           </div>
 
           <h2 className="font-display text-3xl mb-1" style={{ color: 'var(--navy)' }}>
@@ -100,18 +109,19 @@ export default function Login() {
                 placeholder="seu.usuario"
                 autoComplete="off"
                 {...register('username', { required: 'Informe o usuário' })}
-                            />
+              />
               {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username.message}</p>}
             </div>
 
             <div>
               <label className="label">Senha</label>
-             <div className="relative">
+              <div className="relative">
                 <input
                   className={`input pr-10 ${errors.password ? 'border-red-400' : ''}`}
                   type={showPw ? 'text' : 'password'}
                   autoComplete="new-password"
-                  {...register('password', { required: 'Informe a senha' })}                />
+                  {...register('password', { required: 'Informe a senha' })}
+                />
                 <button type="button" onClick={() => setShowPw(!showPw)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -124,7 +134,7 @@ export default function Login() {
               className="btn-primary w-full py-3 text-base mt-1"
               style={{ background: 'var(--navy)' }}>
               {loading ? (
-                <span className="flex items-center gap-2">
+                <span className="flex items-center gap-2 justify-center">
                   <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="40" strokeDashoffset="10" />
                   </svg>
