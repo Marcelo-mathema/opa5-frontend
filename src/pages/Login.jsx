@@ -76,7 +76,7 @@ export default function Login() {
         </div>
 
         <p className="relative text-blue-300 text-xs">
-          © {new Date().getFullYear()} OPA SaaS. Todos os direitos reservados.
+          © {new Date().getFullYear()} OPA - MPA Produtos. Todos os direitos reservados.
         </p>
       </div>
 
