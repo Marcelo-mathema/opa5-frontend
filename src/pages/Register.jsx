@@ -79,7 +79,7 @@ export default function Register() {
         {/* Logo — idêntica à do Login */}
         <div className="relative">
           <img
-            src="/logo.png"
+            src="/logo_opa_login.png"
             alt="OPA — Otimização do Plano de Aula"
             className="h-16 w-auto object-contain"
           />
@@ -124,7 +124,7 @@ export default function Register() {
               CORRIGIDO: usa a logo real igual ao Login */}
           <div className="flex items-center gap-2 mb-6 lg:hidden">
             <img
-              src="/logo.png"
+              src="/logo_opa_login.png"
               alt="OPA — Otimização do Plano de Aula"
               className="h-8 w-auto object-contain"
             />
