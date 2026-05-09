@@ -28,7 +28,7 @@ export default function Register() {
   const navigate = useNavigate()
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm()
-  const senha    = watch('password')
+  const senha     = watch('password')
   const nomeWatch = watch('nome_completo') || ''
   const previewUsername = gerarUsername(nomeWatch)
 
@@ -41,14 +41,14 @@ export default function Register() {
         setLoading(false)
         return
       }
-      // Envia nome_completo separado — salvo com acentos e espaços no banco
       await api.post('/api/auth/register', {
         username,
         nome_completo: data.nome_completo.trim(),
-        password: data.password,
-        disciplina: data.disciplina || '',
-        escola: data.escola || '',
-        masp: data.masp || '',
+        password:      data.password,
+        email:         data.email.trim().toLowerCase(),   // ← NOVO
+        disciplina:    data.disciplina || '',
+        escola:        data.escola || '',
+        masp:          data.masp || '',
       })
       setUsernameGerado(username)
       setDone(true)
@@ -58,7 +58,9 @@ export default function Register() {
       const msg = e.response?.data?.detail
       toast.error(msg === 'Usuário já existe.'
         ? 'Nome já em uso. Tente adicionar uma inicial ou número.'
-        : msg || 'Erro ao criar conta.')
+        : msg === 'E-mail já cadastrado.'
+          ? 'Este e-mail já está em uso. Faça login ou use outro e-mail.'
+          : msg || 'Erro ao criar conta.')
     } finally {
       setLoading(false)
     }
@@ -68,7 +70,6 @@ export default function Register() {
     <div className="min-h-screen flex" style={{ background: 'var(--navy)' }}>
       {/* ═══════════════════════════════════════════
           PAINEL ESQUERDO — visível apenas em desktop
-          ─ CORRIGIDO: usa a logo real igual ao Login
       ════════════════════════════════════════════ */}
       <div className="hidden lg:flex flex-col justify-between w-[45%] p-12 relative overflow-hidden">
         <div className="absolute inset-0 opacity-10">
@@ -76,7 +77,6 @@ export default function Register() {
           <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full border border-white -translate-x-1/2 translate-y-1/2" />
         </div>
 
-        {/* Logo — idêntica à do Login */}
         <div className="relative">
           <img
             src="/logo_opa_login.png"
@@ -93,10 +93,10 @@ export default function Register() {
           </h1>
           <div className="flex flex-col gap-4">
             {[
-              { titulo: 'Plano gratuito', desc: '3 planos de aula por mês sem custo' },
-              { titulo: 'BNCC integrada', desc: 'Competências preenchidas automaticamente' },
-              { titulo: 'IA para inclusão', desc: 'Relatórios SAA gerados em segundos' },
-              { titulo: 'PDF profissional', desc: 'Com logo da sua escola incluída' },
+              { titulo: 'Plano gratuito',    desc: '3 planos de aula por mês sem custo' },
+              { titulo: 'BNCC integrada',    desc: 'Competências preenchidas automaticamente' },
+              { titulo: 'IA para inclusão',  desc: 'Relatórios SAA gerados em segundos' },
+              { titulo: 'PDF profissional',  desc: 'Com logo da sua escola incluída' },
             ].map(b => (
               <div key={b.titulo} className="flex items-start gap-3">
                 <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5"
@@ -111,7 +111,9 @@ export default function Register() {
             ))}
           </div>
         </div>
-        <p className="relative text-blue-300 text-xs">© {new Date().getFullYear()} OPA – MPA Produtos. Todos os direitos reservados.</p>
+        <p className="relative text-blue-300 text-xs">
+          © {new Date().getFullYear()} OPA – MPA Produtos. Todos os direitos reservados.
+        </p>
       </div>
 
       {/* ═══════════════════════════════════════════
@@ -120,8 +122,7 @@ export default function Register() {
       <div className="flex-1 flex items-center justify-center p-6 lg:p-12 bg-white lg:rounded-l-3xl overflow-y-auto">
         <div className="w-full max-w-md fade-in py-4">
 
-          {/* Logo mobile — visível só em telas pequenas
-              CORRIGIDO: usa a logo real igual ao Login */}
+          {/* Logo mobile */}
           <div className="flex items-center gap-2 mb-6 lg:hidden">
             <img
               src="/logo_opa_login.png"
@@ -132,26 +133,41 @@ export default function Register() {
 
           {done ? (
             <div className="flex flex-col items-center justify-center py-12 gap-4 text-center fade-in">
-              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'var(--sage)' }}>
+              <div className="w-20 h-20 rounded-full flex items-center justify-center"
+                style={{ background: 'var(--sage)' }}>
                 <CheckCircle2 size={40} style={{ color: 'var(--teal)' }} />
               </div>
-              <h2 className="font-display text-2xl" style={{ color: 'var(--navy)' }}>Conta criada!</h2>
+              <h2 className="font-display text-2xl" style={{ color: 'var(--navy)' }}>
+                Conta criada!
+              </h2>
               <div className="p-4 rounded-xl w-full" style={{ background: 'var(--slate)' }}>
-                <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>Seu usuário para login:</p>
-                <p className="font-mono font-bold text-lg" style={{ color: 'var(--navy)' }}>{usernameGerado}</p>
+                <p className="text-xs mb-1" style={{ color: 'var(--muted)' }}>
+                  Seu usuário para login:
+                </p>
+                <p className="font-mono font-bold text-lg" style={{ color: 'var(--navy)' }}>
+                  {usernameGerado}
+                </p>
               </div>
-              <p className="text-sm" style={{ color: 'var(--muted)' }}>Redirecionando para o login…</p>
+              <p className="text-sm" style={{ color: 'var(--muted)' }}>
+                Redirecionando para o login…
+              </p>
             </div>
           ) : (
             <>
-              <h2 className="font-display text-3xl mb-1" style={{ color: 'var(--navy)' }}>Criar conta grátis</h2>
-              <p className="text-sm mb-7" style={{ color: 'var(--muted)' }}>Preencha seus dados para começar.</p>
+              <h2 className="font-display text-3xl mb-1" style={{ color: 'var(--navy)' }}>
+                Criar conta grátis
+              </h2>
+              <p className="text-sm mb-7" style={{ color: 'var(--muted)' }}>
+                Preencha seus dados para começar.
+              </p>
 
               <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
 
                 {/* Nome completo */}
                 <div>
-                  <label className="label">Nome completo <span className="text-red-400">*</span></label>
+                  <label className="label">
+                    Nome completo <span className="text-red-400">*</span>
+                  </label>
                   <input
                     className={`input ${errors.nome_completo ? 'border-red-400' : ''}`}
                     placeholder="Ex: Marcelo Pereira Antônio"
@@ -172,42 +188,90 @@ export default function Register() {
                   }
                 </div>
 
+                {/* ─── E-MAIL (NOVO) ─────────────────────────────── */}
+                <div>
+                  <label className="label">
+                    E-mail <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    className={`input ${errors.email ? 'border-red-400' : ''}`}
+                    type="email"
+                    placeholder="seuemail@exemplo.com"
+                    {...register('email', {
+                      required: 'Informe seu e-mail',
+                      pattern: {
+                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                        message: 'E-mail inválido',
+                      },
+                    })}
+                  />
+                  {errors.email
+                    ? <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                    : <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
+                        Usado para notificações e recuperação de conta
+                      </p>
+                  }
+                </div>
+                {/* ─────────────────────────────────────────────────── */}
+
                 {/* Senha */}
                 <div>
-                  <label className="label">Senha <span className="text-red-400">*</span></label>
+                  <label className="label">
+                    Senha <span className="text-red-400">*</span>
+                  </label>
                   <div className="relative">
-                    <input className={`input pr-10 ${errors.password ? 'border-red-400' : ''}`}
-                      type={showPw ? 'text' : 'password'} placeholder="Mínimo 6 caracteres"
-                      {...register('password', { required: 'Informe uma senha', minLength: { value: 6, message: 'Mínimo 6 caracteres' } })} />
+                    <input
+                      className={`input pr-10 ${errors.password ? 'border-red-400' : ''}`}
+                      type={showPw ? 'text' : 'password'}
+                      placeholder="Mínimo 6 caracteres"
+                      {...register('password', {
+                        required: 'Informe uma senha',
+                        minLength: { value: 6, message: 'Mínimo 6 caracteres' },
+                      })}
+                    />
                     <button type="button" onClick={() => setShowPw(!showPw)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                       {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
-                  {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
+                  {errors.password &&
+                    <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
                 </div>
 
                 {/* Confirmar senha */}
                 <div>
-                  <label className="label">Confirmar senha <span className="text-red-400">*</span></label>
+                  <label className="label">
+                    Confirmar senha <span className="text-red-400">*</span>
+                  </label>
                   <div className="relative">
-                    <input className={`input pr-10 ${errors.confirm ? 'border-red-400' : ''}`}
-                      type={showPw2 ? 'text' : 'password'} placeholder="Repita a senha"
-                      {...register('confirm', { required: 'Confirme a senha', validate: v => v === senha || 'As senhas não coincidem' })} />
+                    <input
+                      className={`input pr-10 ${errors.confirm ? 'border-red-400' : ''}`}
+                      type={showPw2 ? 'text' : 'password'}
+                      placeholder="Repita a senha"
+                      {...register('confirm', {
+                        required: 'Confirme a senha',
+                        validate: v => v === senha || 'As senhas não coincidem',
+                      })}
+                    />
                     <button type="button" onClick={() => setShowPw2(!showPw2)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
                       {showPw2 ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
-                  {errors.confirm && <p className="text-red-500 text-xs mt-1">{errors.confirm.message}</p>}
+                  {errors.confirm &&
+                    <p className="text-red-500 text-xs mt-1">{errors.confirm.message}</p>}
                 </div>
 
+                {/* Separador dados profissionais */}
                 <div className="flex items-center gap-3 my-1">
                   <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
-                  <span className="text-xs" style={{ color: 'var(--muted)' }}>Dados profissionais (opcional)</span>
+                  <span className="text-xs" style={{ color: 'var(--muted)' }}>
+                    Dados profissionais (opcional)
+                  </span>
                   <div className="flex-1 h-px" style={{ background: 'var(--border)' }} />
                 </div>
 
+                {/* Disciplina */}
                 <div>
                   <label className="label">Disciplina</label>
                   <select className="select" {...register('disciplina')}>
@@ -216,23 +280,28 @@ export default function Register() {
                   </select>
                 </div>
 
+                {/* Escola + MASP */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="label">Escola</label>
-                    <input className="input" placeholder="Nome da escola" {...register('escola')} />
+                    <input className="input" placeholder="Nome da escola"
+                      {...register('escola')} />
                   </div>
                   <div>
                     <label className="label">MASP / Matrícula</label>
-                    <input className="input" placeholder="000000" {...register('masp')} />
+                    <input className="input" placeholder="000000"
+                      {...register('masp')} />
                   </div>
                 </div>
 
                 <button type="submit" disabled={loading}
-                  className="btn w-full py-3 text-base mt-2 text-white" style={{ background: 'var(--navy)' }}>
+                  className="btn w-full py-3 text-base mt-2 text-white"
+                  style={{ background: 'var(--navy)' }}>
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
                       <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="40" strokeDashoffset="10" />
+                        <circle cx="12" cy="12" r="10" stroke="currentColor"
+                          strokeWidth="3" strokeDasharray="40" strokeDashoffset="10" />
                       </svg>
                       Criando conta…
                     </span>
