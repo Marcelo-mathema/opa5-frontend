@@ -39,6 +39,7 @@ function EditUserModal({ user, schools, onClose, onSave }) {
     disciplina: user.disciplina || '',
     school_id: user.school_id || '',
     masp: user.masp || '',
+    email: user.email || '',
     new_password: '',
   })
   const [showPw, setShowPw] = useState(false)
@@ -127,6 +128,19 @@ function EditUserModal({ user, schools, onClose, onSave }) {
             <input className="input" value={form.masp}
               onChange={e => setForm(f => ({ ...f, masp: e.target.value }))} />
           </div>
+
+          {/* ─── E-MAIL ─────────────────────────── */}
+          <div>
+            <label className="label">E-mail</label>
+            <input className="input" type="email"
+              placeholder="email@exemplo.com"
+              value={form.email}
+              onChange={e => setForm(f => ({ ...f, email: e.target.value.trim().toLowerCase() }))} />
+            <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
+              Usado para notificações e recuperação de conta
+            </p>
+          </div>
+          {/* ──────────────────────────────────────── */}
 
           <div>
             <label className="label">Nova senha (opcional)</label>
