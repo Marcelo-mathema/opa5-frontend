@@ -1,34 +1,35 @@
 // src/hooks/useBNCC.js
 // ─────────────────────────────────────────────────────────────────────────────
-// Substitui a versão anterior que lia um arquivo local (bncc_matematica.js)
-// Agora consulta o backend FastAPI que serve todas as disciplinas do JSON completo
+// Substitui a versão anterior que lia bncc_matematica.js (só Matemática)
+// Agora consulta o backend que serve todas as disciplinas do JSON completo
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { api } from '../services/api'
 
-// Cache em memória para não re-buscar enquanto a aba estiver aberta
+// ── Cache em memória para não re-buscar enquanto a aba estiver aberta ─────────
 let _cache = null
-let _loading = false
+let _carregando = false
 let _listeners = []
 
 function notificarListeners() {
   _listeners.forEach(fn => fn())
+  _listeners = []
 }
 
 async function carregarTodasHabilidades() {
   if (_cache) return _cache
-  if (_loading) {
-    // Aguarda quem já está carregando
+  if (_carregando) {
     return new Promise(resolve => {
       _listeners.push(() => resolve(_cache))
     })
   }
-  _loading = true
+
+  _carregando = true
   try {
     const { data } = await api.get('/api/bncc/habilidades')
-    // Normaliza: backend retorna { codigo, texto, disciplina, area, serie, nivel }
-    // BNCCSelector espera: { codigo, descricao, serie, disciplina }
+    // Backend retorna: { codigo, texto, disciplina, area, serie, nivel, competencia }
+    // BNCCSelector espera: { codigo, descricao, disciplina, area, serie, nivel }
     _cache = (data || []).map(h => ({
       codigo:     h.codigo,
       descricao:  h.texto,
@@ -42,14 +43,14 @@ async function carregarTodasHabilidades() {
   } catch (e) {
     console.error('[useBNCC] Erro ao carregar habilidades:', e)
     _cache = []
+    notificarListeners()
     return _cache
   } finally {
-    _loading = false
-    _listeners = []
+    _carregando = false
   }
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
+// ── Hook principal ────────────────────────────────────────────────────────────
 export function useBNCC() {
   const [todasHabilidades, setTodasHabilidades] = useState(_cache || [])
   const [carregando, setCarregando] = useState(!_cache)
@@ -68,13 +69,13 @@ export function useBNCC() {
     })
   }, [])
 
-  // Lista de disciplinas únicas disponíveis no banco
+  // Lista de disciplinas únicas disponíveis
   const disciplinasDisponiveis = useMemo(() => {
     const set = new Set(todasHabilidades.map(h => h.disciplina))
     return [...set].sort()
   }, [todasHabilidades])
 
-  // Séries disponíveis — opcionalmente filtradas por disciplina
+  // Séries disponíveis opcionalmente filtradas por disciplina
   const getSeriesPorDisciplina = useCallback((disciplina) => {
     const base = disciplina
       ? todasHabilidades.filter(h => h.disciplina === disciplina)
@@ -97,7 +98,7 @@ export function useBNCC() {
     })
   }, [todasHabilidades])
 
-  // Busca por código exato
+  // Busca por código exato — retorna o texto da habilidade ou null
   const getDescricaoPorCodigo = useCallback((codigo) => {
     if (!codigo) return null
     const cod = codigo.trim().toUpperCase()
@@ -105,12 +106,12 @@ export function useBNCC() {
     return encontrada?.descricao || null
   }, [todasHabilidades])
 
-  // Busca livre por código ou texto da habilidade
+  // Busca livre por código ou trecho do texto
   const buscar = useCallback((query, disciplina, serie) => {
     if (!query || query.length < 2) return []
     const q = query.toLowerCase()
     const base = getHabilidades(disciplina, serie)
-    // Se disciplina tem habilidades, busca só nelas; senão busca em tudo
+    // Se a disciplina tem habilidades, busca só nelas; senão busca em tudo
     const pool = base.length > 0 ? base : todasHabilidades
     return pool
       .filter(h =>
@@ -120,10 +121,8 @@ export function useBNCC() {
       .slice(0, 12)
   }, [todasHabilidades, getHabilidades])
 
-  // Competências por série — geradas dinamicamente a partir dos dados
+  // Competências por série — texto resumido
   const getCompetenciasPorSerie = useCallback((serie) => {
-    // Retorna texto placeholder; competências completas podem ser expandidas
-    // no futuro integrando o campo "competencia" do JSON da BNCC
     if (!serie) return ''
     return `Habilidades da BNCC para ${serie}.`
   }, [])
