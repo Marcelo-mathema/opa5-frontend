@@ -19,8 +19,26 @@ const DISCIPLINAS = [
   'Inglês', 'Filosofia', 'Sociologia', 'Ensino Religioso', 'Outra',
 ]
 const SERIES = [
-  '6º Ano EF', '7º Ano EF', '8º Ano EF', '9º Ano EF',
-  '1ª Série EM', '2ª Série EM', '3ª Série EM',
+  // ── Ensino Fundamental — Anos Iniciais ──────────────────────────────
+  '1º Ano',
+  '2º Ano',
+  '3º Ano',
+  '4º Ano',
+  '5º Ano',
+  // ── Ensino Fundamental — Anos Finais ────────────────────────────────
+  '6º Ano',
+  '7º Ano',
+  '8º Ano',
+  '9º Ano',
+  // ── Faixas multi-ano (habilidades compartilhadas) ───────────────────
+  '1º ao 2º Ano',
+  '1º ao 5º Ano',
+  '3º ao 5º Ano',
+  '6º ao 7º Ano',
+  '6º ao 9º Ano',
+  '8º ao 9º Ano',
+  // ── Ensino Médio ─────────────────────────────────────────────────────
+  'Ensino Médio',
 ]
 const NECESSIDADES_OPTS = [
   'Deficiência Visual', 'Deficiência Auditiva', 'Deficiência Intelectual',
