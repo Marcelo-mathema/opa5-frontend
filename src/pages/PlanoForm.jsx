@@ -107,7 +107,6 @@ export default function PlanoForm() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const { getCompetenciasPorSerie } = useBNCC()
-  const disciplinaAtual = watch('disciplina')
 
   const [loadingIA, setLoadingIA]   = useState(false)
   const [loadingSAA, setLoadingSAA] = useState(false)
@@ -135,6 +134,7 @@ export default function PlanoForm() {
   })
 
   const serieAtual = watch('serie')
+  const disciplinaAtual = watch('disciplina')
 
   // Auto-preenche competências quando série muda
   useEffect(() => {
