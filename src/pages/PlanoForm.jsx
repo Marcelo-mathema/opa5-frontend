@@ -107,6 +107,7 @@ export default function PlanoForm() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const { getCompetenciasPorSerie } = useBNCC()
+  const disciplinaAtual = watch('disciplina')
 
   const [loadingIA, setLoadingIA]   = useState(false)
   const [loadingSAA, setLoadingSAA] = useState(false)
@@ -133,16 +134,15 @@ export default function PlanoForm() {
     }
   })
 
-  const disciplinaAtual = watch('disciplina')
   const serieAtual = watch('serie')
 
   // Auto-preenche competências quando série muda
   useEffect(() => {
     if (serieAtual && !isEditing) {
-      const comp = getCompetenciasPorSerie(serieAtual)
+      const comp = getCompetenciasPorSerie(serieAtual, disciplinaAtual)
       if (comp) setValue('competencias', comp)
     }
-  }, [serieAtual])
+  }, [serieAtual, disciplinaAtual])
 
   // Carrega plano existente ao editar
   useEffect(() => {
