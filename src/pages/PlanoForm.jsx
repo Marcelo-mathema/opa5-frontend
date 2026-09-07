@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import {
-  Sparkles, Download, Save, ChevronDown, ChevronUp,
+  Sparkles, Download, Eye, Save, ChevronDown, ChevronUp,
   UserCheck, AlertCircle, Loader2, ArrowLeft, Lock, Unlock, Info
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { planosAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import { useBNCC } from '../hooks/useBNCC'
+import PDFPreviewModal from '../components/PDFPreviewModal'
 import Layout from '../components/layout/Layout'
 import BNCCSelector from '../components/forms/BNCCSelector'
 
@@ -19,26 +20,8 @@ const DISCIPLINAS = [
   'Inglês', 'Filosofia', 'Sociologia', 'Ensino Religioso', 'Outra',
 ]
 const SERIES = [
-  // ── Ensino Fundamental — Anos Iniciais ──────────────────────────────
-  '1º Ano',
-  '2º Ano',
-  '3º Ano',
-  '4º Ano',
-  '5º Ano',
-  // ── Ensino Fundamental — Anos Finais ────────────────────────────────
-  '6º Ano',
-  '7º Ano',
-  '8º Ano',
-  '9º Ano',
-  // ── Faixas multi-ano (habilidades compartilhadas) ───────────────────
-  '1º ao 2º Ano',
-  '1º ao 5º Ano',
-  '3º ao 5º Ano',
-  '6º ao 7º Ano',
-  '6º ao 9º Ano',
-  '8º ao 9º Ano',
-  // ── Ensino Médio ─────────────────────────────────────────────────────
-  'Ensino Médio',
+  '6º Ano EF', '7º Ano EF', '8º Ano EF', '9º Ano EF',
+  '1ª Série EM', '2ª Série EM', '3ª Série EM',
 ]
 const NECESSIDADES_OPTS = [
   'Deficiência Visual', 'Deficiência Auditiva', 'Deficiência Intelectual',
@@ -128,6 +111,8 @@ export default function PlanoForm() {
   const [loadingIA, setLoadingIA]   = useState(false)
   const [loadingSAA, setLoadingSAA] = useState(false)
   const [loadingPDF, setLoadingPDF] = useState(false)
+  // Pré-visualização do PDF
+  const [preview, setPreview] = useState({ open: false, url: '', filename: '' })
   const [loadingSave, setLoadingSave] = useState(false)
 
   const [temPAEE, setTemPAEE]     = useState(false)
@@ -259,17 +244,24 @@ export default function PlanoForm() {
     }
     setLoadingPDF(true)
     try {
-      await planosAPI.downloadPDF({
+      // Gera o PDF e abre no modal em vez de baixar direto
+      const { url, filename } = await planosAPI.gerarPDFBlob({
         plano_id: parseInt(id),
         escola: getValues('escola') || user?.escola || '',
         professor_nome: user?.username || '',
       })
-      toast.success('PDF baixado!')
+      setPreview({ open: true, url, filename })
     } catch {
       toast.error('Erro ao gerar PDF.')
     } finally {
       setLoadingPDF(false)
     }
+  }
+
+  // Fecha o modal e libera a memória do blob
+  const fecharPreview = () => {
+    if (preview.url) URL.revokeObjectURL(preview.url)
+    setPreview({ open: false, url: '', filename: '' })
   }
 
   const toggleNecessidade = (n) => {
@@ -307,8 +299,8 @@ export default function PlanoForm() {
                 {loadingIA ? 'Gerando…' : 'Gerar com IA'}
               </button>
               <button type="button" onClick={handlePDF} disabled={loadingPDF} className="btn-outline gap-2">
-                {loadingPDF ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />}
-                PDF
+                {loadingPDF ? <Loader2 size={15} className="animate-spin" /> : <Eye size={15} />}
+                {loadingPDF ? 'Gerando…' : 'Ver PDF'}
               </button>
               <button type="submit" disabled={loadingSave} className="btn-primary gap-2">
                 {loadingSave ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}
@@ -554,6 +546,14 @@ export default function PlanoForm() {
           </div>
         </div>
       </form>
+    
+      {/* Modal de pré-visualização do PDF */}
+      <PDFPreviewModal
+        open={preview.open}
+        url={preview.url}
+        filename={preview.filename}
+        onClose={fecharPreview}
+      />
     </Layout>
   )
 }
