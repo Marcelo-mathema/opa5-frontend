@@ -103,11 +103,24 @@ export function useBNCC() {
     [todasHabilidades],
   );
 
+  // Normaliza a série para tolerar valores antigos salvos no banco,
+  // como "9º Ano EF" ou "1ª Série EM", que já não existem na lista atual.
+  const normalizarSerie = (s) => {
+    if (!s) return "";
+    return s
+      .replace(/\s*EF\s*$/i, "") // "9º Ano EF" → "9º Ano"
+      .replace(/^\d+ª\s*Série\s*EM$/i, "Ensino Médio")
+      .trim();
+  };
+
   const getHabilidades = useCallback(
     (disciplina, serie) => {
       if (!disciplina) return [];
+      const serieNorm = normalizarSerie(serie);
       return todasHabilidades.filter((h) => {
-        return h.disciplina === disciplina && (!serie || h.serie === serie);
+        return (
+          h.disciplina === disciplina && (!serieNorm || h.serie === serieNorm)
+        );
       });
     },
     [todasHabilidades],
