@@ -134,7 +134,10 @@ export default function PlanoForm() {
   })
 
   const serieAtual = watch('serie')
-  const disciplinaAtual = watch('disciplina')
+  // Admin edita a disciplina pelo select (registrado no form);
+  // professor comum vê um campo read-only, que não é registrado —
+  // por isso o fallback para user.disciplina.
+  const disciplinaAtual = watch('disciplina') || user?.disciplina || ''
 
   // Auto-preenche competências quando série muda
   useEffect(() => {
