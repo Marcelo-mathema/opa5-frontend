@@ -11,6 +11,7 @@ import { planosAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
 import { useBNCC } from '../hooks/useBNCC'
 import PDFPreviewModal from '../components/PDFPreviewModal'
+import CompetenciasSelector from '../components/forms/CompetenciasSelector'
 import Layout from '../components/layout/Layout'
 import BNCCSelector from '../components/forms/BNCCSelector'
 
@@ -21,16 +22,12 @@ const DISCIPLINAS = [
 ]
 // Valores idênticos aos do campo "serie" no bncc_data.json.
 // Qualquer divergência aqui quebra o filtro de habilidades.
+// Apenas anos simples. As faixas multi-ano da BNCC (1º ao 5º, 6º ao 9º etc.)
+// são incluídas automaticamente pelo filtro em useBNCC.
 const SERIES = [
-  // Anos Iniciais
   '1º Ano', '2º Ano', '3º Ano', '4º Ano', '5º Ano',
-  // Anos Finais
   '6º Ano', '7º Ano', '8º Ano', '9º Ano',
-  // Faixas multi-ano (habilidades compartilhadas na BNCC)
-  '1º ao 2º Ano', '1º ao 5º Ano', '3º ao 5º Ano',
-  '6º ao 7º Ano', '6º ao 9º Ano', '8º ao 9º Ano',
-  // Ensino Médio
-  'Ensino Médio',
+  '1ª Série EM', '2ª Série EM', '3ª Série EM',
 ]
 const NECESSIDADES_OPTS = [
   'Deficiência Visual', 'Deficiência Auditiva', 'Deficiência Intelectual',
@@ -115,7 +112,7 @@ export default function PlanoForm() {
   const isEditing = !!id && id !== 'novo'
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
-  const { getCompetenciasPorSerie } = useBNCC()
+  const { competencias } = useBNCC()
 
   const [loadingIA, setLoadingIA]   = useState(false)
   const [loadingSAA, setLoadingSAA] = useState(false)
@@ -147,14 +144,6 @@ export default function PlanoForm() {
   // professor comum vê um campo read-only, que não é registrado —
   // por isso o fallback para user.disciplina.
   const disciplinaAtual = watch('disciplina') || user?.disciplina || ''
-
-  // Auto-preenche competências quando série muda
-  useEffect(() => {
-    if (serieAtual && !isEditing) {
-      const comp = getCompetenciasPorSerie(serieAtual, disciplinaAtual)
-      if (comp) setValue('competencias', comp)
-    }
-  }, [serieAtual, disciplinaAtual])
 
   // Carrega plano existente ao editar
   useEffect(() => {
@@ -423,17 +412,19 @@ export default function PlanoForm() {
             {/* 2. BNCC */}
             <Section title="2. BNCC — Competências e Habilidades">
 
-              {/* Competências — auto-preenchidas pela série */}
+              {/* Competências — selecionadas manualmente pelo professor */}
               <div className="mb-5">
-                <div className="flex items-center gap-2 mb-1.5">
-                  <label className="label mb-0">Competências</label>
-                  {serieAtual && (
-                    <span className="badge badge-teal text-xs">Auto-preenchido</span>
-                  )}
+                <div className="flex items-center gap-2 mb-2">
+                  <label className="label mb-0">Competências específicas</label>
                 </div>
-                <textarea className="textarea" rows={3}
-                  placeholder="Selecione a Série acima para preencher automaticamente…"
-                  {...register('competencias')} />
+                <CompetenciasSelector
+                  disciplina={disciplinaAtual}
+                  competencias={competencias}
+                  value={getValues('competencias')}
+                  onChange={(texto) => setValue('competencias', texto)}
+                />
+                {/* Campo oculto que carrega o texto para o formulário */}
+                <input type="hidden" {...register('competencias')} />
               </div>
 
               {/* Seletor BNCC */}

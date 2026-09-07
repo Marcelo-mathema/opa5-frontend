@@ -103,25 +103,59 @@ export function useBNCC() {
     [todasHabilidades],
   );
 
-  // Normaliza a série para tolerar valores antigos salvos no banco,
-  // como "9º Ano EF" ou "1ª Série EM", que já não existem na lista atual.
+  // ── Correspondência de séries ──────────────────────────────────────────────
+  // A BNCC tem habilidades por ano ("6º Ano") e habilidades compartilhadas
+  // por faixa ("6º ao 9º Ano"). Um plano do 6º ano deve enxergar as duas.
+  // Também tolera valores antigos salvos no banco ("9º Ano EF", "1ª Série EM").
+
   const normalizarSerie = (s) => {
     if (!s) return "";
-    return s
-      .replace(/\s*EF\s*$/i, "") // "9º Ano EF" → "9º Ano"
-      .replace(/^\d+ª\s*Série\s*EM$/i, "Ensino Médio")
+    return String(s)
+      .replace(/\s*EF\s*$/i, "")
       .trim();
+  };
+
+  // Extrai o número do ano: "6º Ano" → 6
+  const numeroDoAno = (s) => {
+    const m = String(s).match(/^(\d+)º\s*Ano$/i);
+    return m ? parseInt(m[1]) : null;
+  };
+
+  // Faixa "6º ao 9º Ano" → { de: 6, ate: 9 }
+  const faixaDeAnos = (s) => {
+    const m = String(s).match(/^(\d+)º\s*ao\s*(\d+)º\s*Ano$/i);
+    return m ? { de: parseInt(m[1]), ate: parseInt(m[2]) } : null;
+  };
+
+  const ehEnsinoMedio = (s) =>
+    /^\d+ª\s*Série\s*EM$/i.test(String(s)) ||
+    /^Ensino\s*Médio$/i.test(String(s));
+
+  // Decide se a habilidade (serieHab) se aplica à série escolhida (serieAlvo)
+  const serieCorresponde = (serieHab, serieAlvo) => {
+    if (!serieAlvo) return true;
+    const alvo = normalizarSerie(serieAlvo);
+    const hab = normalizarSerie(serieHab);
+
+    if (hab === alvo) return true;
+
+    // Ensino Médio: qualquer série do EM vê as habilidades do EM
+    if (ehEnsinoMedio(alvo) && ehEnsinoMedio(hab)) return true;
+
+    // Ano simples dentro de uma faixa: 3º Ano ⊂ 1º ao 5º Ano
+    const n = numeroDoAno(alvo);
+    const faixa = faixaDeAnos(hab);
+    if (n !== null && faixa) return n >= faixa.de && n <= faixa.ate;
+
+    return false;
   };
 
   const getHabilidades = useCallback(
     (disciplina, serie) => {
       if (!disciplina) return [];
-      const serieNorm = normalizarSerie(serie);
-      return todasHabilidades.filter((h) => {
-        return (
-          h.disciplina === disciplina && (!serieNorm || h.serie === serieNorm)
-        );
-      });
+      return todasHabilidades.filter(
+        (h) => h.disciplina === disciplina && serieCorresponde(h.serie, serie),
+      );
     },
     [todasHabilidades],
   );
@@ -182,6 +216,7 @@ export function useBNCC() {
 
   return {
     todasHabilidades,
+    competencias, // objeto bruto: { "Matemática": [{n, t}, ...] }
     carregando,
     disciplinasDisponiveis,
     getSeriesPorDisciplina,
