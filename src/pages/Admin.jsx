@@ -132,7 +132,7 @@ function EditUserModal({ user, schools, onClose, onSave }) {
           {/* ─── E-MAIL ─────────────────────────── */}
           <div>
             <label className="label">E-mail</label>
-            <input className="input" type="email"
+            <input className="input" type="email" autoComplete="off"
               placeholder="email@exemplo.com"
               value={form.email}
               onChange={e => setForm(f => ({ ...f, email: e.target.value.trim().toLowerCase() }))} />
@@ -145,7 +145,7 @@ function EditUserModal({ user, schools, onClose, onSave }) {
           <div>
             <label className="label">Nova senha (opcional)</label>
             <div className="relative">
-              <input className="input pr-10" type={showPw ? 'text' : 'password'}
+              <input className="input pr-10" type={showPw ? 'text' : 'password'} autoComplete="new-password"
                 placeholder="Deixe em branco para não alterar"
                 value={form.new_password}
                 onChange={e => setForm(f => ({ ...f, new_password: e.target.value }))} />
