@@ -345,7 +345,7 @@ export default function Admin() {
   useEffect(() => { fetchAll() }, [])
 
   const handleDeleteUser = async (uid) => {
-    if (!confirm('Excluir este usuário permanentemente?')) return
+    if (!confirm('Excluir este usuário permanentemente? Isso também apaga TODOS os planos de aula e o histórico dele. Se quiser preservar os dados, use "Desativar" em vez de excluir.')) return
     try {
       await api.delete(`/api/admin/users/${uid}`)
       toast.success('Usuário removido.')
