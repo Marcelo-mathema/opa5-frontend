@@ -18,7 +18,8 @@ import BNCCSelector from '../components/forms/BNCCSelector'
 const DISCIPLINAS = [
   'Matemática', 'Português', 'História', 'Geografia', 'Ciências',
   'Biologia', 'Física', 'Química', 'Arte', 'Educação Física',
-  'Inglês', 'Filosofia', 'Sociologia', 'Ensino Religioso', 'Outra',
+  'Inglês', 'Filosofia', 'Sociologia', 'Ensino Religioso',
+  'Linguagens', 'Ciências Humanas', 'Ciências da Natureza', 'Outra',
 ]
 // Valores idênticos aos do campo "serie" no bncc_data.json.
 // Qualquer divergência aqui quebra o filtro de habilidades.
@@ -29,6 +30,28 @@ const SERIES = [
   '6º Ano', '7º Ano', '8º Ano', '9º Ano',
   '1ª Série EM', '2ª Série EM', '3ª Série EM',
 ]
+// Nomes do formulario/cadastro -> nomes da base BNCC (bncc_data.json).
+// No Fundamental a base usa o COMPONENTE ("Língua Portuguesa"); no Ensino Médio usa a ÁREA
+// ("Linguagens", "Ciências Humanas", "Ciências da Natureza"). Só afeta a busca BNCC:
+// o plano continua salvo com o nome que o professor escolheu.
+const BNCC_FUNDAMENTAL = {
+  'Português': 'Língua Portuguesa', 'Inglês': 'Língua Inglesa',
+  'Biologia': 'Ciências', 'Física': 'Ciências', 'Química': 'Ciências',
+}
+const BNCC_MEDIO = {
+  'Português': 'Linguagens', 'Língua Portuguesa': 'Linguagens', 'Inglês': 'Linguagens',
+  'Língua Inglesa': 'Linguagens', 'Arte': 'Linguagens', 'Educação Física': 'Linguagens',
+  'Biologia': 'Ciências da Natureza', 'Física': 'Ciências da Natureza',
+  'Química': 'Ciências da Natureza', 'Ciências': 'Ciências da Natureza',
+  'História': 'Ciências Humanas', 'Geografia': 'Ciências Humanas',
+  'Filosofia': 'Ciências Humanas', 'Sociologia': 'Ciências Humanas',
+}
+function disciplinaParaBNCC(disciplina, serie) {
+  if (!disciplina) return ''
+  const ehMedio = /\bEM\b|Médio/i.test(serie || '')
+  const mapa = ehMedio ? BNCC_MEDIO : BNCC_FUNDAMENTAL
+  return mapa[disciplina] || disciplina
+}
 const NECESSIDADES_OPTS = [
   'Deficiência Visual', 'Deficiência Auditiva', 'Deficiência Intelectual',
   'TEA (Autismo)', 'TDAH', 'Deficiência Física', 'Superdotação/AH',
@@ -144,6 +167,7 @@ export default function PlanoForm() {
   // professor comum vê um campo read-only, que não é registrado —
   // por isso o fallback para user.disciplina.
   const disciplinaAtual = watch('disciplina') || user?.disciplina || ''
+  const disciplinaBNCC = disciplinaParaBNCC(disciplinaAtual, serieAtual)
 
   // Carrega plano existente ao editar
   useEffect(() => {
@@ -418,7 +442,7 @@ export default function PlanoForm() {
                   <label className="label mb-0">Competências específicas</label>
                 </div>
                 <CompetenciasSelector
-                  disciplina={disciplinaAtual}
+                  disciplina={disciplinaBNCC}
                   competencias={competencias}
                   value={getValues('competencias')}
                   onChange={(texto) => setValue('competencias', texto)}
@@ -429,7 +453,7 @@ export default function PlanoForm() {
 
               {/* Seletor BNCC */}
               <BNCCSelector
-                disciplina={disciplinaAtual}
+                disciplina={disciplinaBNCC}
                 serie={serieAtual}
                 initialCodigos={isEditing ? getValues('codigos') : ''}
                 onChange={({ codigos, habilidades }) => {
