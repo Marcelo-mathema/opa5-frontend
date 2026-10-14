@@ -147,6 +147,10 @@ export default function PlanoForm() {
   const [temPAEE, setTemPAEE]     = useState(false)
   const [necessidades, setNecessidades] = useState([])
   const [recursos, setRecursos]   = useState('')
+  const [outraDesc, setOutraDesc] = useState('')
+  // "Outra" vira "Outra: <texto digitado>" ao salvar e ao gerar o SAA
+  const necessidadesFinais = () =>
+    necessidades.map(n => (n === 'Outra' ? `Outra: ${outraDesc.trim()}` : n))
 
   const [locked, setLocked] = useState({
     objetivos: false, desenvolvimento: false, conclusao: false
@@ -187,7 +191,10 @@ export default function PlanoForm() {
         })
         if (p.inclusion_data?.paee) {
           setTemPAEE(true)
-          setNecessidades(p.inclusion_data.necessidades || [])
+          const nec = p.inclusion_data.necessidades || []
+          const outra = nec.find(n => typeof n === 'string' && n.startsWith('Outra: '))
+          setNecessidades(nec.map(n => (typeof n === 'string' && n.startsWith('Outra: ') ? 'Outra' : n)))
+          if (outra) setOutraDesc(outra.slice(7))
           setRecursos((p.inclusion_data.recursos || []).join(', '))
         }
       }).catch(() => toast.error('Erro ao carregar plano.'))
@@ -219,11 +226,13 @@ export default function PlanoForm() {
   const handleGerarSAA = async () => {
     const v = getValues()
     if (!v.tema) return toast.error('Informe o Tema antes de gerar o relatório.')
+    if (necessidades.includes('Outra') && !outraDesc.trim())
+      return toast.error("Descreva a necessidade em 'Outra' ou desmarque-a.")
     setLoadingSAA(true)
     try {
       const result = await planosAPI.gerarSAA({
         disciplina: v.disciplina, serie: v.serie, tema: v.tema,
-        necessidades, recursos: recursos ? [recursos] : [],
+        necessidades: necessidadesFinais(), recursos: recursos ? [recursos] : [],
         observacao: v.observacao || '',
       })
       setValue('saa_text', result.saa_text)
@@ -236,12 +245,16 @@ export default function PlanoForm() {
   }
 
   const onSubmit = async (data) => {
+    if (temPAEE && necessidades.includes('Outra') && !outraDesc.trim()) {
+      toast.error("Descreva a necessidade em 'Outra' ou desmarque-a.")
+      return
+    }
     setLoadingSave(true)
     try {
       const payload = {
         ...data,
         inclusion_data: temPAEE ? {
-          paee: true, necessidades,
+          paee: true, necessidades: necessidadesFinais(),
           recursos: recursos ? recursos.split(',').map(s => s.trim()).filter(Boolean) : [],
           observacao: data.observacao || '',
         } : null,
@@ -539,6 +552,17 @@ export default function PlanoForm() {
                     ))}
                   </div>
                   <div className="mb-4">
+                    {necessidades.includes('Outra') && (
+                      <div className="mb-4 fade-in">
+                        <label className="label">Descreva a necessidade (Outra) <span className="text-red-400">*</span></label>
+                        <input className="input" maxLength={120}
+                          placeholder="Ex: transtorno de processamento auditivo, baixa visão…"
+                          value={outraDesc} onChange={e => setOutraDesc(e.target.value)} />
+                        <p className="text-xs mt-1" style={{ color: 'var(--muted)' }}>
+                          Essa descrição será usada pela IA e aparecerá no relatório.
+                        </p>
+                      </div>
+                    )}
                     <label className="label">Recursos / Apoios disponíveis</label>
                     <input className="input"
                       placeholder="Ex: sala de recursos, intérprete de Libras…"
@@ -553,7 +577,22 @@ export default function PlanoForm() {
                   {watch('saa_text') && (
                     <div>
                       <label className="label">Sugestão de Atividade Adaptada (SAA)</label>
-                      <textarea className="textarea" rows={8} {...register('saa_text')} />
+                      <p className="text-xs mb-2" style={{ color: 'var(--muted)' }}>
+                        Este texto é protegido e será incluído no PDF do plano. Para ajustá-lo, use o campo
+                        Observações e gere novamente.
+                      </p>
+                      <textarea
+                        className="textarea"
+                        rows={8}
+                        readOnly
+                        spellCheck={false}
+                        onCopy={(e) => e.preventDefault()}
+                        onCut={(e) => e.preventDefault()}
+                        onContextMenu={(e) => e.preventDefault()}
+                        onDragStart={(e) => e.preventDefault()}
+                        style={{ userSelect: 'none', WebkitUserSelect: 'none', cursor: 'default', background: 'var(--sage)' }}
+                        {...register('saa_text')}
+                      />
                     </div>
                   )}
                 </div>
@@ -562,9 +601,13 @@ export default function PlanoForm() {
           </div>
 
           {/* Footer */}
-          <div className="flex justify-end gap-3 mt-6 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
+          <div className="flex flex-wrap justify-end gap-3 mt-6 pt-6 border-t" style={{ borderColor: 'var(--border)' }}>
             <button type="button" onClick={() => navigate('/dashboard')} className="btn-ghost">
               Cancelar
+            </button>
+            <button type="button" onClick={handlePDF} disabled={loadingPDF} className="btn-outline gap-2">
+              {loadingPDF ? <Loader2 size={15} className="animate-spin" /> : <Eye size={15} />}
+              {loadingPDF ? 'Gerando…' : 'Ver PDF'}
             </button>
             <button type="submit" disabled={loadingSave} className="btn-primary gap-2 px-8">
               {loadingSave ? <Loader2 size={15} className="animate-spin" /> : <Save size={15} />}

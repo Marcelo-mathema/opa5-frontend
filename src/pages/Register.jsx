@@ -6,6 +6,7 @@ import { Eye, EyeOff, CheckCircle2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { api } from '../services/api'
 import SchoolCombobox from '../components/forms/SchoolCombobox'
+import GoogleSignIn from '../components/GoogleSignIn'
 
 const DISCIPLINAS = [
   'Matemática','Português','História','Geografia','Ciências',
@@ -273,6 +274,7 @@ export default function Register() {
                 </button>
               </form>
 
+              <GoogleSignIn modo="cadastro" />
               <p className="text-center text-sm mt-5" style={{ color: 'var(--muted)' }}>
                 Já tem conta?{' '}
                 <Link to="/login" className="font-semibold" style={{ color: 'var(--blue)' }}>

@@ -6,6 +6,7 @@ import { Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { authAPI } from '../services/api'
 import { useAuthStore } from '../store/authStore'
+import GoogleSignIn from '../components/GoogleSignIn'
 
 export default function Login() {
   const [showPw, setShowPw] = useState(false)
@@ -146,6 +147,7 @@ export default function Login() {
             </button>
           </form>
 
+          <GoogleSignIn modo="login" />
           <p className="text-center text-sm mt-6" style={{ color: 'var(--muted)' }}>
             Ainda não tem conta?{' '}
             <Link to="/register" className="font-semibold" style={{ color: 'var(--blue)' }}>
